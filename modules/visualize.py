@@ -1,5 +1,4 @@
 import os
-import click
 
 import numpy as np
 import cv2
@@ -8,7 +7,6 @@ from pytesseract import Output
 
 # pytesseract.pytesseract.tesseract_cmd = r'<full_path_to_your_tesseract_executable>'  
 pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'  # config line
-
 
 def plot_bboxes(ocr_img: np.array,
                 ocr_data: dict,
@@ -44,9 +42,9 @@ def visualize_ocr(img_path: str,
     cv2.imwrite(img_out_path, ocr_img) 
 
 def plot_ocr(img_dir: str,
-             ):
+             lang: str = 'eng'):
     if img_dir.endswith(('.jpg', '.png', '.jpeg')):
-        visualize_ocr(img_dir)
+        visualize_ocr(img_dir, lang=lang)
     else:
         list_img = os.listdir(img_dir)
         for img_path in list_img:
@@ -54,3 +52,5 @@ def plot_ocr(img_dir: str,
                 visualize_ocr(os.path.join(img_dir, img_path))
     
     print('OCR visualization finished!')
+    
+plot_ocr('../examples/1.png', lang='eng')
