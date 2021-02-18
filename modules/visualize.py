@@ -53,4 +53,4 @@ def plot_ocr(img_dir: str,
     
     print('OCR visualization finished!')
     
-plot_ocr('../examples/1.png', lang='eng')
+# plot_ocr('../examples/1.png', lang='eng')

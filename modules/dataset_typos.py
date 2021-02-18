@@ -2,8 +2,12 @@ import glob
 import os
 import re
 import random
+import pickle
 
+import numpy as np
+import pandas as pd
 import nltk
+import editdistance
 
 class DatasetExtractor():
     
@@ -101,6 +105,39 @@ class DatasetExtractor():
 train_files = sorted(glob.glob(os.path.join("../../data/training_18M_without_Finnish/EN", "*", "*.txt")))
 
 Dataset = DatasetExtractor()
+
 ocr_words, gs_words, labels = Dataset.extract_dataset(train_files)
-Dataset.show_example(ocr_words, gs_words, labels)
-            
+ocr_words_corr = []
+for sentence in ocr_words:
+    ocr_words_corr.append([word.replace('@', '') for word in sentence])
+gs_words_corr = []
+for sentence in gs_words:
+    gs_words_corr.append([word.replace('@', '') for word in sentence])
+    
+Dataset.show_example(ocr_words_corr, gs_words_corr, labels)
+
+# DATA ANALYSIS   
+sent_stat = pd.DataFrame({"ocr_sentence": ocr_words_corr, "gs_sentence": gs_words_corr})
+sent_stat.head()
+
+def compute_sent_edit_distance(x):
+    ''' Compute sentence edit distance normalized by the length of the sentence'''
+    ocr_sent = "".join(x['ocr_sentence'])
+    gs_sent = "".join(x['gs_sentence'])
+    return editdistance.distance(ocr_sent, gs_sent) / max(len(ocr_sent), len(gs_sent))
+
+sent_stat["sent_edit_distance"] = sent_stat.apply(compute_sent_edit_distance, axis=1)
+sent_stat["sent_edit_distance"].hist()
+
+MAXIMUM_AVERAGE_EDIT_DISTANCE_RATE = 0.4
+total_sent = sent_stat.shape[0]
+good_sent = (sent_stat["sent_edit_distance"] <= MAXIMUM_AVERAGE_EDIT_DISTANCE_RATE).sum()
+good_sent_ratio = good_sent / total_sent
+print("good sentences: %s\ntotal sentences: %s\ngood sentences ratio: %s" % (good_sent, total_sent, good_sent_ratio))
+
+good_sentences_stat = sent_stat[sent_stat["sent_edit_distance"] <= MAXIMUM_AVERAGE_EDIT_DISTANCE_RATE]
+
+words = np.array(ocr_words_corr, dtype=object)[good_sentences_stat.index.tolist()].tolist()
+labels = np.array(labels, dtype=object)[good_sentences_stat.index.tolist()].tolist()
+pickle.dump(words, open("train_ed_filtered_words.pickle", "wb"))
+pickle.dump(labels, open("train_ed_filtered_labels.pickle", "wb"))

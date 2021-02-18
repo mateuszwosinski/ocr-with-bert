@@ -1,1 +1,4 @@
 pytesseract==0.3.7
+spacy==3.0.3
+contextualSpellCheck==0.4.0
+transformers==4.3.2

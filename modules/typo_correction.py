@@ -1,8 +1,12 @@
 import re
+import os
 from collections import Counter
 
+import spacy
+import contextualSpellCheck as SpellCheck
 
-class TypoCorrector():
+
+class TypoCorrector_simple():
     
     def __init__(self,
                  corpus_file: str = 'big.txt'):
@@ -43,17 +47,32 @@ class TypoCorrector():
         return (e2 for e1 in self.edits1(word) for e2 in self.edits1(e1))
 
     def correction(self,
-                   word): 
+                   word: str): 
         return max(self.candidates(word), key=self.get_word_prob)
     
     def __call__(self,
-                 word):
-        return self.correction(word)
+                 sentence):
+        return [self.correction(word) for word in sentence.split(' ')]
     
     
-Corrector = TypoCorrector('../big.txt')
-print(Corrector('corecton'))
-
+class TypoCorrector_contextual():
+    
+    def __init__(self):
+        os.environ["TOKENIZERS_PARALLELISM"] = "false"
+        self.corrector = spacy.load('en_core_web_sm')
+        SpellCheck.add_to_pipe(self.corrector)
+        
+    def __call__(self,
+                 sentence: str
+                 ):
+        doc = self.corrector(sentence)
+        corrected_sentence = doc._.outcome_spellCheck
+        return corrected_sentence.split(' ') 
+    
+# =============================================================================
+# Corrector = TypoCorrector_simple('../big.txt')
+# print(Corrector('corecton'))
+# =============================================================================
     
 
 
