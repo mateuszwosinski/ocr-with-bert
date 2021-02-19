@@ -1,6 +1,7 @@
 import re
 import os
 from collections import Counter
+from typing import List
 
 import spacy
 import contextualSpellCheck as SpellCheck
@@ -47,11 +48,13 @@ class TypoCorrector_simple():
         return (e2 for e1 in self.edits1(word) for e2 in self.edits1(e1))
 
     def correction(self,
-                   word: str): 
+                   word: str
+                   ) -> str: 
         return max(self.candidates(word), key=self.get_word_prob)
     
     def __call__(self,
-                 sentence):
+                 sentence: str
+                 ) -> List[str]:
         return [self.correction(word) for word in sentence.split(' ')]
     
     
@@ -64,7 +67,7 @@ class TypoCorrector_contextual():
         
     def __call__(self,
                  sentence: str
-                 ):
+                 ) -> List[str]:
         doc = self.corrector(sentence)
         corrected_sentence = doc._.outcome_spellCheck
         return corrected_sentence.split(' ') 
