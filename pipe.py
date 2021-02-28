@@ -75,15 +75,15 @@ OCR2 = OCRSingleImage(correction_method='simple')
 OCR3 = OCRSingleImage(correction_method='contextual')
 
 start1 = time.time()
-ocr_text1 = OCR1.ocr_image('examples/1.png', lang='eng')
+ocr_text1 = OCR1.ocr_image('examples/1.png', lang='eng', plot=True)
 print(f'\nNo correction:\n {ocr_text1}\nTime spent: {time.time() - start1}')
 
 start2 = time.time()
-ocr_text2 = OCR2.ocr_image('examples/1.png', lang='eng')
+ocr_text2 = OCR2.ocr_image('examples/1.png', lang='eng', plot=True)
 print(f'\nSimple correction:\n {ocr_text2}\nTime spent: {time.time() - start2}')
 
 start3 = time.time()
-ocr_text3 = OCR3.ocr_image('examples/1.png', lang='eng')
+ocr_text3 = OCR3.ocr_image('examples/1.png', lang='eng', plot=True)
 print(f'\nContextual correction:\n {ocr_text3}\nTime spent: {time.time() - start3}')
 
 
