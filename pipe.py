@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import pytesseract
 from pytesseract import Output
+import easyocr
 
 from modules.visualize import plot_bboxes
 from modules.typo_correction import TypoCorrector_simple, TypoCorrector_contextual
@@ -15,13 +16,21 @@ pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'  # config line
 class OCRSingleImage():
     def __init__(self,
                  lang: str = 'eng',
+                 ocr_method: str = 'tesseract',
                  detection_method: str = None,
                  correction_method: str = None):
-        assert correction_method in [None, 'simple', 'contextual'], 'Method not implemented yet!'
+        assert ocr_method in ['tesseract', 'easy'], 'OCR method not implemented!'
+        assert correction_method in [None, 'simple', 'contextual'], 'Typo correction method not implemented!'
         
         self.lang = lang
+        self.ocr_method = ocr_method
         self.detection_method = detection_method
-        self.correction_method = correction_method
+        self.correction_method = correction_method 
+        
+        if ocr_method == 'easy':
+            if lang == 'eng':
+                raise NotImplemented
+                self.ocr = easyocr.Reader(['en'])
         
         if detection_method is None:
             self.detector = lambda x: x
@@ -42,7 +51,11 @@ class OCRSingleImage():
         
         ocr_img = cv2.imread(img_path)
         
-        ocr_data = pytesseract.image_to_data(ocr_img, lang=lang, output_type=Output.DICT)
+        if self.ocr_method == 'tesseract':
+            ocr_data = pytesseract.image_to_data(ocr_img, lang=lang, output_type=Output.DICT)
+        elif self.ocr_method == 'easy':
+            ocr_data = self.ocr.readtext(img_path)
+            
         ocr_data = self._convert_ocr_data(ocr_data)
         
         ocr_text = self.detector(ocr_data['text'])
@@ -70,9 +83,10 @@ class OCRSingleImage():
             ocr_d[k] = np.array(ocr_data[k])[idxs_to_convert].tolist()
         return ocr_d
 
-OCR1 = OCRSingleImage(correction_method=None)
-OCR2 = OCRSingleImage(correction_method='simple')
-OCR3 = OCRSingleImage(correction_method='contextual')
+ocr = 'tesseract'
+OCR1 = OCRSingleImage(ocr_method=ocr, correction_method=None)
+OCR2 = OCRSingleImage(ocr_method=ocr, correction_method='simple')
+OCR3 = OCRSingleImage(ocr_method=ocr, correction_method='contextual')
 
 start1 = time.time()
 ocr_text1 = OCR1.ocr_image('examples/1.png', lang='eng', plot=True)
