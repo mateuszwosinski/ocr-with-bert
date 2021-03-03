@@ -1,8 +1,11 @@
 import os
 
+import numpy as np
+import wandb
 import torch
 import torch.utils.data as torchdata
 from torch import nn
+from sklearn.metrics import accuracy_score
 from transformers import AdamW, get_linear_schedule_with_warmup
 from tqdm import tqdm
 
@@ -55,6 +58,10 @@ def train_detector(model,
                    epochs: int,
                    lr: float
                    ):
+    wandb.init('ocr-with-bert')
+    config = wandb.config
+    config.learning_rate = lr
+    config.epochs = epochs
     
     os.makedirs(output_dir, exist_ok=True)
     
@@ -62,6 +69,7 @@ def train_detector(model,
     model.to(device)
     
     loss_fct = nn.CrossEntropyLoss()
+    #loss_fct = nn.BCELoss()
     
     optimizer = prepare_optimizer(model,
                                   lr=lr)
@@ -75,13 +83,14 @@ def train_detector(model,
     acc_arr = {'train': [], 'val': []}
 
     best_loss = float('inf')
-    best_acc = 0
     
     for epoch in range(epochs):
         print(f"Epoch: {epoch + 1}")
         
         for mode in ['train', 'val']:
             loss_epoch = 0
+            predictions, true_labels = [], []
+            
             if mode == 'train':
                 model.train()              
             else:
@@ -105,6 +114,10 @@ def train_detector(model,
                 loss = loss_fct(active_logits, active_labels)
                 loss_epoch += loss.item()
                 
+                logits = logits.detach().cpu().numpy()
+                predictions.extend([list(p) for p in np.argmax(logits, axis=2)])
+                true_labels.extend(labels.cpu().tolist())
+                
                 if mode == 'train':
                     model.zero_grad()
                     loss.backward()
@@ -112,10 +125,22 @@ def train_detector(model,
                     optimizer.step()
                     scheduler.step()
                 
+                if (step % 100) == 0:
+                    wandb.log({f"loss_{mode}" : loss})
+  
             loss_avg = loss_epoch / len(dataloaders[mode])
             print(f"{mode} loss: {loss_avg}")
-            
             loss_arr[mode].append(loss_avg)
+            
+            pred_tags = [p_i for p, l, m in zip(predictions, true_labels, masks)
+                         for p_i, l_i, m_i in zip(p, l, m) if m_i]
+            true_tags = [l_i for l, m in zip(true_labels, masks)
+                         for l_i, m_i in zip(l, m) if m_i]
+            acc = accuracy_score(pred_tags, true_tags)
+            print(f"{mode} accuracy: {acc}")
+            acc_arr[mode].append(acc)
+            
+            wandb.log({f"accuracy_{mode}": acc})
             
             if mode == 'val':
                 if loss_avg < best_loss:
@@ -126,3 +151,4 @@ def train_detector(model,
                         'optimizer_state_dict': optimizer.state_dict()},
                         os.path.join(output_dir, "best_model.pth"))
                     tokenizer.save_pretrained(output_dir)
+                    
