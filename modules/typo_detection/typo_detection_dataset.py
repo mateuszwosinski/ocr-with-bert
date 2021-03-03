@@ -19,8 +19,8 @@ class TypoDataset():
         self.max_sequence_length = max_sequence_length
     
     def _tokenize_and_preserve_labels(self,
-                                     sentence: List[str], 
-                                     labels: List[int]):
+                                     sentence: List[List[str]], 
+                                     labels: List[List[int]]):
         """ Tokenize sentence into BERT subtokens.
         
         sentence - list of lists of words
