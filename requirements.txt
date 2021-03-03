@@ -2,3 +2,7 @@ pytesseract==0.3.7
 spacy==3.0.3
 contextualSpellCheck==0.4.0
 transformers==4.3.2
+torch==1.7.1
+cv2==4.2.0
+numpy==1.18.5
+
