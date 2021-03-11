@@ -29,7 +29,6 @@ class OCRSingleImage():
         
         if ocr_method == 'easy':
             if lang == 'eng':
-                raise NotImplemented
                 self.ocr = easyocr.Reader(['en'])
         
         if detection_method is None:
