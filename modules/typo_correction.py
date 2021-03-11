@@ -10,7 +10,7 @@ import contextualSpellCheck as SpellCheck
 class TypoCorrector_simple():
     
     def __init__(self,
-                 corpus_file: str = 'big.txt'):
+                 corpus_file: str = 'data/big.txt'):
         self.WORDS = Counter(self.get_all_words(open(corpus_file).read()))
         self.N = sum(self.WORDS.values())
     
