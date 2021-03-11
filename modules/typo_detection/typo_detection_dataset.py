@@ -89,16 +89,19 @@ class TypoDataset():
         self._save_data_tensors(inputs, lbls, masks, out_path)
         return inputs, lbls, masks
 
-words = pickle.load(open("../data/train_ed_filtered_words.pickle", "rb"))
-labels = pickle.load(open("../data/train_ed_filtered_labels.pickle", "rb"))
+words = pickle.load(open("../../data/train_ed_filtered_words.pickle", "rb"))
+labels = pickle.load(open("../../data/train_ed_filtered_labels.pickle", "rb"))
 
-train_part = int(0.8 * len(words))
-val_part = len(words) - train_part
-
-modes = ['train', 'val']
-words_m = [words[:train_part], words[train_part:]]
-labels_m = [labels[:train_part], labels[train_part:]]
-
-for mode, word, label in zip(modes, words_m, labels_m):
-    ds = TypoDataset(mode=mode)
-    inp, tg, msk = ds.prepare_dataset(word, label, out_path='../data/typo_ds_1')
+# =============================================================================
+# train_part = int(0.8 * len(words))
+# val_part = len(words) - train_part
+# 
+# modes = ['train', 'val']
+# words_m = [words[:train_part], words[train_part:]]
+# labels_m = [labels[:train_part], labels[train_part:]]
+# 
+# for mode, word, label in zip(modes, words_m, labels_m):
+#     ds = TypoDataset(mode=mode)
+#     inp, tg, msk = ds.prepare_dataset(word, label, out_path='../data/typo_ds_1')
+# 
+# =============================================================================

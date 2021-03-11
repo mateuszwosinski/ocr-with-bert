@@ -102,7 +102,7 @@ class DatasetExtractor():
             print(f'{o} --- {g} --- {l}')
 
     
-train_files = sorted(glob.glob(os.path.join("../../data/training_18M_without_Finnish/EN", "*", "*.txt")))
+train_files = sorted(glob.glob(os.path.join("../../data/ICDAR2019-POCR-ground-truth/training_18M_without_Finnish/EN", "*", "*.txt")))
 
 Dataset = DatasetExtractor()
 
@@ -139,5 +139,7 @@ good_sentences_stat = sent_stat[sent_stat["sent_edit_distance"] <= MAXIMUM_AVERA
 
 words = np.array(ocr_words_corr, dtype=object)[good_sentences_stat.index.tolist()].tolist()
 labels = np.array(labels, dtype=object)[good_sentences_stat.index.tolist()].tolist()
-pickle.dump(words, open("train_ed_filtered_words.pickle", "wb"))
-pickle.dump(labels, open("train_ed_filtered_labels.pickle", "wb"))
+
+
+#pickle.dump(words, open("train_ed_filtered_words.pickle", "wb"))
+#pickle.dump(labels, open("train_ed_filtered_labels.pickle", "wb"))
