@@ -17,21 +17,25 @@ class TypoDetectorBERT(nn.Module):
         self.embedding_dim = 768
         self.out_size = 32
         self.num_labels = 2
-
         
         self.conv_1 = nn.Conv1d(self.embedding_dim, self.out_size, self.kernel_1, stride=1, padding=1)
+        nn.init.kaiming_normal_(self.conv1.weight, mode='fan_out')
         self.pool_1 = nn.MaxPool1d(kernel_size=self.kernel_1, stride=1)
         
         self.conv_2 = nn.Conv1d(self.embedding_dim, self.out_size, self.kernel_2, stride=1, padding=1)
+        nn.init.kaiming_normal_(self.conv2.weight, mode='fan_out')
         self.pool_2 = nn.MaxPool1d(kernel_size=self.kernel_2, stride=1, padding=1)
         
         self.conv_3 = nn.Conv1d(self.embedding_dim, self.out_size, self.kernel_3, stride=1, padding=2)
+        nn.init.kaiming_normal_(self.conv3.weight, mode='fan_out')
         self.pool_3 = nn.MaxPool1d(kernel_size=self.kernel_3, stride=1, padding=1)
         
         self.conv_4 = nn.Conv1d(self.embedding_dim, self.out_size, self.kernel_4, stride=1, padding=2)
+        nn.init.kaiming_normal_(self.conv4.weight, mode='fan_out')
         self.pool_4 = nn.MaxPool1d(kernel_size=self.kernel_4, stride=1, padding=2)
         
         self.classifier = nn.Linear(self.out_size * 4, self.num_labels)  
+        nn.init.kaiming_normal_(self.classifier.weight, mode='fan_out')
         
     def forward(self, input, attention_mask):
         out = self.bert(input, attention_mask)
