@@ -1,3 +1,4 @@
+import os
 import time
 from typing import Dict, Any
 
@@ -44,7 +45,6 @@ class OCRSingleImage():
     def ocr_image(self,
                   img_path: str,
                   lang: str = 'eng',
-                  method = None,
                   plot: bool = False
                   ) -> str:
         
@@ -63,7 +63,9 @@ class OCRSingleImage():
         ocr_data['text'] = self.corrector(ocr_text)
         
         if plot:
-            ocr_img = plot_bboxes(ocr_img, ocr_data)
+            split_path = os.path.splitext(img_path)
+            out_path = f"{split_path[0]}_{self.correction_method}{split_path[1]}"
+            ocr_img = plot_bboxes(ocr_img, ocr_data, out_path)
         
         ocr_text = ' '.join(ocr_data['text']).lower()
         return ocr_text

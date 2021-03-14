@@ -90,7 +90,11 @@ def incorporate_typos(sentences: List[List[str]],
 
 
 sentences = prepare_data('../../data/big.txt')
-sentences, labels = incorporate_typos(sentences)
 
-pickle.dump(sentences, open('../../data/words_big.pickle', 'wb'))
-pickle.dump(labels, open('../../data/labels_big.pickle', 'wb'))
+len_chunk = 2000
+for ix, sentences_chunk in enumerate(sentences[x:x+len_chunk] for x in range(0, len(sentences), len_chunk)):
+    sentences_chunk, labels_chunk = incorporate_typos(sentences_chunk)
+
+    pickle.dump(sentences_chunk, open(f'../../data/files_pickle/words_big_{ix}.pickle', 'wb'))
+    pickle.dump(labels_chunk, open(f'../../data/files_pickle/labels_big_{ix}.pickle', 'wb'))
+    break

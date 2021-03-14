@@ -1,6 +1,5 @@
 import os
-import pickle
-from typing import List, Any
+from typing import List, Any, Tuple
 
 import torch
 from transformers import BertTokenizer
@@ -19,12 +18,13 @@ class TypoDataset():
         self.max_sequence_length = max_sequence_length
     
     def _tokenize_and_preserve_labels(self,
-                                     sentence: List[List[str]], 
-                                     labels: List[List[int]]):
+                                     sentence: List[str], 
+                                     labels: List[int]
+                                     ) -> Tuple[List[int], List[int]]:
         """ Tokenize sentence into BERT subtokens.
         
-        sentence - list of lists of words
-        labels - list of lists of binary labels
+        sentence - list of words
+        labels - list of binary labels
         """
         tokenized_sentence = []
         tokenized_labels = []
@@ -40,10 +40,10 @@ class TypoDataset():
         tokenized_sentence = ["[CLS]"] + tokenized_sentence + ["[SEP]"]
         tokenized_labels = [0] + tokenized_labels + [0]
         return tokenized_sentence, tokenized_labels
-    
+
     def _truncate_or_pad(self,
                         arr: List[Any]
-                        ):
+                        ) -> List[Any]:
         """ Truncate or pad the `arr` according the maximum sequence length"""
         
         return arr[:self.max_sequence_length] + [self.tokenizer.pad_token_id] * (self.max_sequence_length - len(arr))
@@ -53,13 +53,14 @@ class TypoDataset():
                            labels: torch.tensor,
                            masks: torch.tensor,
                            out_path: str
-                           ):
+                           ) -> None:
         
         os.makedirs(out_path, exist_ok=True)
         torch.save(inputs, os.path.join(out_path, f"inputs_{self.mode}.pt"))
         torch.save(labels, os.path.join(out_path, f"labels_{self.mode}.pt"))
         torch.save(masks, os.path.join(out_path, f"masks_{self.mode}.pt"))
         self.tokenizer.save_pretrained(out_path)
+        return None
     
     def prepare_dataset(self,
                         words: List[str], 
@@ -88,20 +89,3 @@ class TypoDataset():
         
         self._save_data_tensors(inputs, lbls, masks, out_path)
         return inputs, lbls, masks
-
-words = pickle.load(open("../../data/train_ed_filtered_words.pickle", "rb"))
-labels = pickle.load(open("../../data/train_ed_filtered_labels.pickle", "rb"))
-
-# =============================================================================
-# train_part = int(0.8 * len(words))
-# val_part = len(words) - train_part
-# 
-# modes = ['train', 'val']
-# words_m = [words[:train_part], words[train_part:]]
-# labels_m = [labels[:train_part], labels[train_part:]]
-# 
-# for mode, word, label in zip(modes, words_m, labels_m):
-#     ds = TypoDataset(mode=mode)
-#     inp, tg, msk = ds.prepare_dataset(word, label, out_path='../data/typo_ds_1')
-# 
-# =============================================================================

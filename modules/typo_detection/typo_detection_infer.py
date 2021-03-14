@@ -1,4 +1,5 @@
 import os
+import string
 
 import numpy as np
 import torch
@@ -23,6 +24,7 @@ class TypoDetector():
     def __call__(self,
                  sentence: str):
         
+        sentence = sentence.translate(str.maketrans('', '', string.punctuation))
         input_ids, attention_mask = self._preprocess_sentence(sentence)
         
         with torch.no_grad():
@@ -59,7 +61,15 @@ class TypoDetector():
         return torch.tensor([tokenized_sentence]).to(self.device), torch.tensor([attention_mask]).to(self.device)
     
     
-# =============================================================================
-# Detector = TypoDetector('../data/model_init')      
-# a, b = Detector("Schol was clsd yesterday")
-# =============================================================================
+Detector = TypoDetector('../../data/typo_models/amazon_imdb_big_20k_4k')      
+
+labels, words = Detector("To understand a langge is to anderstnd thougts.")
+print("%-15s %-10s" % ("WORD", "LABEL"))
+print('-' * 30)
+for word, label in zip(words, labels):
+    if word == '[CLS]':
+        continue
+    elif word == '[SEP]':
+        break
+    else:
+        print("%-15s %-10s" % (word, label))

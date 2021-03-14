@@ -4,8 +4,10 @@ from transformers import BertTokenizer
 from typo_detection_train import prepare_dataloader, train_detector
 from typo_detection_model import TypoDetectorBERT
 
-output_dir = '../../data/model_init'
-data_dir = '../../data/typo_ds_1'
+source_name = 'amazon_imdb_big_20k_4k'
+
+output_dir = f'../../data/typo_models/{source_name}'
+data_dir = f'../../data/typo_ds/{source_name}'
 epochs = 5
 lr = 3e-5
 

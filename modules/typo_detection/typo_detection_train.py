@@ -125,7 +125,7 @@ def train_detector(model,
                     optimizer.step()
                     scheduler.step()
                 
-                if (step % 100) == 0:
+                if (step % 1000) == 0:
                     wandb.log({f"loss_{mode}" : loss})
   
             loss_avg = loss_epoch / len(dataloaders[mode])
