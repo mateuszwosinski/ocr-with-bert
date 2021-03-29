@@ -1,10 +1,14 @@
 import re
 import os
+import string
 from collections import Counter
-from typing import List
+from typing import List, Tuple
 
 import spacy
 import contextualSpellCheck as SpellCheck
+
+from modules.typo_detection.typo_detection_infer import TypoDetector
+from modules.typo_correction.typo_correction_infer import TypoCorrector
 
 
 class TypoCorrector_simple():
@@ -72,10 +76,36 @@ class TypoCorrector_contextual():
         corrected_sentence = doc._.outcome_spellCheck
         return corrected_sentence.split(' ') 
     
-# =============================================================================
-# Corrector = TypoCorrector_simple('../big.txt')
-# print(Corrector('corecton'))
-# =============================================================================
+
+class TypoCorrector_BERT():
     
-
-
+    def __init__(self,
+                 detection_model_path: str = 'data/typo_models/amazon_imdb_big_20k_4k',
+                 topk: int = 50):
+        self.detector = TypoDetector(detection_model_path)
+        self.corrector = TypoCorrector(topk=topk)
+    
+    def __call__(self,
+                 ocr_text: str
+                 ) -> List[str]:
+        ocr_text = ocr_text.translate(str.maketrans('','',string.punctuation))
+        typo_detections = self.detector(ocr_text.lower())
+        masked_text, ocr_words = self._convert_typo_detections(typo_detections[0], ocr_text.split(' '))
+        corrected_text = self.corrector(masked_text,
+                                        ocr_words)
+        return corrected_text.split(' ')
+    
+    @staticmethod
+    def _convert_typo_detections(typo_detections: List[int],
+                                 org_words: List[str]
+                                 ) -> Tuple[str, List[str]]:
+        masked_text = []
+        ocr_words = []     
+        for label, word in zip(typo_detections, org_words):
+            if label == 1:
+                ocr_words.append(word)
+                masked_text.append('[MASK]')
+            else:
+                masked_text.append(word)        
+        masked_text = ' '.join(masked_text)
+        return masked_text, ocr_words
