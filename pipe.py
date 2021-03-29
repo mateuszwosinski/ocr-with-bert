@@ -1,5 +1,6 @@
 import os
 import time
+import string
 from typing import Dict, Any
 
 import cv2
@@ -9,38 +10,37 @@ from pytesseract import Output
 import easyocr
 
 from modules.visualize import plot_bboxes
-from modules.typo_correction import TypoCorrector_simple, TypoCorrector_contextual
+from modules.corrector import TypoCorrector_simple, TypoCorrector_contextual, TypoCorrector_BERT
+
 
 pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'  # config line
-
 
 class OCRSingleImage():
     def __init__(self,
                  lang: str = 'eng',
                  ocr_method: str = 'tesseract',
-                 detection_method: str = None,
                  correction_method: str = None):
-        assert ocr_method in ['tesseract', 'easy'], 'OCR method not implemented!'
-        assert correction_method in [None, 'simple', 'contextual'], 'Typo correction method not implemented!'
+        assert ocr_method in ['tesseract', 'easy'], 'Selected OCR method not implemented!'
+        assert correction_method in [None, 'simple', 'contextual', 'bert'], 'Selected Typo correction method not implemented!'
         
         self.lang = lang
         self.ocr_method = ocr_method
-        self.detection_method = detection_method
         self.correction_method = correction_method 
         
         if ocr_method == 'easy':
             if lang == 'eng':
                 self.ocr = easyocr.Reader(['en'])
-        
-        if detection_method is None:
-            self.detector = lambda x: x
-        
+
         if correction_method == 'simple':
             self.corrector = TypoCorrector_simple()
         elif correction_method == 'contextual':
             self.corrector = TypoCorrector_contextual()
+        elif correction_method == 'bert':
+            self.corrector = TypoCorrector_BERT(topk=200)
         elif correction_method is None:
             self.corrector = lambda x: x.split(' ')
+        else:
+            raise NotImplementedError
         
     def ocr_image(self,
                   img_path: str,
@@ -56,12 +56,13 @@ class OCRSingleImage():
             ocr_data = self.ocr.readtext(img_path)
             
         ocr_data = self._convert_ocr_data(ocr_data)
+        if len(ocr_data['conf']) == 0:
+            print('!! Did not find any words on the image !!')
+            return None
         
-        ocr_text = self.detector(ocr_data['text'])
-        ocr_text = ' '.join(ocr_text).lower()
-        
+        ocr_text = ' '.join(ocr_data['text']).replace('|', 'I').translate(str.maketrans('', '', string.punctuation))
         ocr_data['text'] = self.corrector(ocr_text)
-        
+
         if plot:
             split_path = os.path.splitext(img_path)
             out_path = f"{split_path[0]}_{self.correction_method}{split_path[1]}"
@@ -85,20 +86,33 @@ class OCRSingleImage():
         return ocr_d
 
 ocr = 'tesseract'
+
 OCR1 = OCRSingleImage(ocr_method=ocr, correction_method=None)
 OCR2 = OCRSingleImage(ocr_method=ocr, correction_method='simple')
 OCR3 = OCRSingleImage(ocr_method=ocr, correction_method='contextual')
+OCR4 = OCRSingleImage(ocr_method=ocr, correction_method='bert')
+print('All models loaded')
 
-start1 = time.time()
-ocr_text1 = OCR1.ocr_image('examples/1.png', lang='eng', plot=True)
-print(f'\nNo correction:\n {ocr_text1}\nTime spent: {time.time() - start1}')
+examples = ['examples/1.png', 'examples/2.jpg', 'examples/3.jpg']
+for example in examples:
+    start1 = time.time()
+    ocr_text1 = OCR1.ocr_image(example, lang='eng', plot=True)
+    print(f'\nNo correction:\n {ocr_text1}\nTime spent: {time.time() - start1}')
+    
+    start2 = time.time()
+    ocr_text2 = OCR2.ocr_image(example, lang='eng', plot=True)
+    print(f'\nSimple correction:\n {ocr_text2}\nTime spent: {time.time() - start2}')
+    
+    start3 = time.time()
+    ocr_text3 = OCR3.ocr_image(example, lang='eng', plot=True)
+    print(f'\nContextual correction:\n {ocr_text3}\nTime spent: {time.time() - start3}')  
+    
+    start4 = time.time()
+    ocr_text4 = OCR4.ocr_image(example, lang='eng', plot=True)
+    print(f'\nBERT correction:\n {ocr_text4}\nTime spent: {time.time() - start4}')
 
-start2 = time.time()
-ocr_text2 = OCR2.ocr_image('examples/1.png', lang='eng', plot=True)
-print(f'\nSimple correction:\n {ocr_text2}\nTime spent: {time.time() - start2}')
+del OCR1, OCR2, OCR3, OCR4
 
-start3 = time.time()
-ocr_text3 = OCR3.ocr_image('examples/1.png', lang='eng', plot=True)
-print(f'\nContextual correction:\n {ocr_text3}\nTime spent: {time.time() - start3}')
-
-
+corrector = TypoCorrector_BERT(topk=150)
+text = corrector('In preparing for battle I hvae always found that plans are useless, but planing is indispensable')
+print(' '.join(text))
