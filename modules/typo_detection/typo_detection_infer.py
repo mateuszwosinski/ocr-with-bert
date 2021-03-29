@@ -4,7 +4,7 @@ import string
 import numpy as np
 import torch
 from transformers import BertTokenizer
-from typo_detection_model import TypoDetectorBERT
+from modules.typo_detection.typo_detection_model import  TypoDetectorBERT
 
 class TypoDetector():
     
@@ -40,12 +40,14 @@ class TypoDetector():
                 new_tokens[-1] = new_tokens[-1] + token[2:]
                 if not new_labels[-1] and label_id:
                     new_labels[-1] = label_id
-                
+            
+            elif token == '[SEP]':
+                break
             else:
                 new_labels.append(label_id)
                 new_tokens.append(token)
                 
-        return new_labels, new_tokens
+        return new_labels[1:], new_tokens[1:]
 
         
     def _preprocess_sentence(self,
@@ -60,16 +62,16 @@ class TypoDetector():
         
         return torch.tensor([tokenized_sentence]).to(self.device), torch.tensor([attention_mask]).to(self.device)
     
-    
-Detector = TypoDetector('../../data/typo_models/amazon_imdb_big_20k_4k')      
-
-labels, words = Detector("To understand a langge is to anderstnd thougts.")
-print("%-15s %-10s" % ("WORD", "LABEL"))
-print('-' * 30)
-for word, label in zip(words, labels):
-    if word == '[CLS]':
-        continue
-    elif word == '[SEP]':
-        break
-    else:
-        print("%-15s %-10s" % (word, label))
+# =============================================================================
+#     
+# Detector = TypoDetector('../../data/typo_models/amazon_imdb_big_20k_4k')      
+# 
+# #sentence = 'To understand a langge is to anderstnd thougts.'
+# #sentence = 'Niedleko pada japko od jabłoni'
+# sentence = 'Planing is worthles, but planning is everythang'
+# labels, words = Detector(sentence)
+# print("%-15s %-10s" % ("WORD", "LABEL"))
+# print('-' * 25)
+# for word, label in zip(words, labels):
+#     print("%-15s %-10s" % (word, label))
+# =============================================================================
