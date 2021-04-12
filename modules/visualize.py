@@ -1,4 +1,5 @@
 import os
+import matplotlib.pyplot as plt
 
 import numpy as np
 import cv2
@@ -11,6 +12,7 @@ pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'  # config line
 def plot_bboxes(ocr_img: np.array,
                 ocr_data: dict,
                 out_path: str,
+                save: bool = False,
                 conf_threshold: int = 50,
                 margin: int = 5):
     
@@ -26,7 +28,9 @@ def plot_bboxes(ocr_img: np.array,
             ocr_img = cv2.rectangle(ocr_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
             ocr_img = cv2.putText(ocr_img, txt, (x, y), font, 1, (255, 255, 255), 2)
     
-    cv2.imwrite(out_path, ocr_img)
+    if save:
+        cv2.imwrite(out_path, ocr_img)
+    plt.imshow(ocr_img)
     return ocr_img
 
 def visualize_ocr(img_path: str, 

@@ -23,7 +23,8 @@ class TypoCorrector():
         indexed_tokens = self.tokenizer.convert_tokens_to_ids(tokenized_text)
         mask_ids = [ix for ix, word in enumerate(tokenized_text) if word == '[MASK]']
         
-        segments_ids = self._find_segments(masked_text.split(' '), tokenized_text)
+        #segments_ids = self._find_segments(masked_text.split(' '), tokenized_text)
+        segments_ids = [0] * len(tokenized_text)
 
         segments_tensors = torch.tensor([segments_ids])
         tokens_tensor = torch.tensor([indexed_tokens])
@@ -65,7 +66,7 @@ class TypoCorrector():
             if token.startswith('##'):
                 segments.append(segment_value)
                 continue
-            if org_text[ix][0].isupper():
+            if (org_text[ix][0].isupper()) or (ix == 0):
                 segment_value += 1
             segments.append(segment_value)
             ix += 1 

@@ -52,7 +52,7 @@ class TypoDetector():
         
     def _preprocess_sentence(self,
                              sentence: str,
-                             max_sequence_length: int = 100):
+                             max_sequence_length: int = 200):
         
         tokenized_sentence = self.tokenizer.encode(sentence)
         attention_mask = np.zeros(max_sequence_length)

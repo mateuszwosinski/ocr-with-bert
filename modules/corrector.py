@@ -88,7 +88,7 @@ class TypoCorrector_BERT():
     def __call__(self,
                  ocr_text: str
                  ) -> List[str]:
-        ocr_text = ocr_text.translate(str.maketrans('','',string.punctuation))
+        ocr_text = ocr_text.replace('  ', ' ').translate(str.maketrans('','',string.punctuation)).strip()
         typo_detections = self.detector(ocr_text.lower())
         masked_text, ocr_words = self._convert_typo_detections(typo_detections[0], ocr_text.split(' '))
         corrected_text = self.corrector(masked_text,

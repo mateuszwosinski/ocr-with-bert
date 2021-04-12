@@ -1,6 +1,7 @@
 import os
 import time
 import string
+import re
 from typing import Dict, Any
 
 import cv2
@@ -45,7 +46,8 @@ class OCRSingleImage():
     def ocr_image(self,
                   img_path: str,
                   lang: str = 'eng',
-                  plot: bool = False
+                  plot: bool = False,
+                  plot_save: bool = False
                   ) -> str:
         
         ocr_img = cv2.imread(img_path)
@@ -60,15 +62,23 @@ class OCRSingleImage():
             print('!! Did not find any words on the image !!')
             return None
         
-        ocr_text = ' '.join(ocr_data['text']).replace('|', 'I').translate(str.maketrans('', '', string.punctuation))
-        ocr_data['text'] = self.corrector(ocr_text)
-
+        ocr_text = ' '.join(ocr_data['text']).replace('|', 'I').split('.')
+        
+        output_text = []
+        for sentence in ocr_text:
+            if len(sentence) < 2:
+                continue
+            sentence = re.sub('[^a-zA-Z0-9 \n\.]', '', sentence)
+            sentence = self.corrector(sentence)
+            output_text.extend(sentence)
+        ocr_data['text'] = output_text
+        
         if plot:
             split_path = os.path.splitext(img_path)
             out_path = f"{split_path[0]}_{self.correction_method}{split_path[1]}"
-            ocr_img = plot_bboxes(ocr_img, ocr_data, out_path)
+            ocr_img = plot_bboxes(ocr_img, ocr_data, out_path, save=plot_save)
         
-        ocr_text = ' '.join(ocr_data['text']).lower()
+        ocr_text = ' '.join(ocr_data['text']).lower().replace('  ', ' ')
         return ocr_text
     
     @staticmethod
@@ -87,32 +97,34 @@ class OCRSingleImage():
 
 ocr = 'tesseract'
 
-OCR1 = OCRSingleImage(ocr_method=ocr, correction_method=None)
-OCR2 = OCRSingleImage(ocr_method=ocr, correction_method='simple')
-OCR3 = OCRSingleImage(ocr_method=ocr, correction_method='contextual')
-OCR4 = OCRSingleImage(ocr_method=ocr, correction_method='bert')
-print('All models loaded')
+# =============================================================================
+# OCR1 = OCRSingleImage(ocr_method=ocr, correction_method=None)
+# OCR2 = OCRSingleImage(ocr_method=ocr, correction_method='simple')
+# OCR3 = OCRSingleImage(ocr_method=ocr, correction_method='contextual')
+# OCR4 = OCRSingleImage(ocr_method=ocr, correction_method='bert')
+# print('All models loaded')
+# 
+# examples = ['examples/1.png', 'examples/2.jpg', 'examples/3.jpg']
+# for example in examples:
+#     start1 = time.time()
+#     ocr_text1 = OCR1.ocr_image(example, lang='eng', plot=True)
+#     print(f'\nNo correction:\n {ocr_text1}\nTime spent: {time.time() - start1}')
+#     
+#     start2 = time.time()
+#     ocr_text2 = OCR2.ocr_image(example, lang='eng', plot=True)
+#     print(f'\nSimple correction:\n {ocr_text2}\nTime spent: {time.time() - start2}')
+#     
+#     start3 = time.time()
+#     ocr_text3 = OCR3.ocr_image(example, lang='eng', plot=True)
+#     print(f'\nContextual correction:\n {ocr_text3}\nTime spent: {time.time() - start3}')  
+#     
+#     start4 = time.time()
+#     ocr_text4 = OCR4.ocr_image(example, lang='eng', plot=True)
+#     print(f'\nBERT correction:\n {ocr_text4}\nTime spent: {time.time() - start4}')
+# =============================================================================
 
-examples = ['examples/1.png', 'examples/2.jpg', 'examples/3.jpg']
-for example in examples:
-    start1 = time.time()
-    ocr_text1 = OCR1.ocr_image(example, lang='eng', plot=True)
-    print(f'\nNo correction:\n {ocr_text1}\nTime spent: {time.time() - start1}')
-    
-    start2 = time.time()
-    ocr_text2 = OCR2.ocr_image(example, lang='eng', plot=True)
-    print(f'\nSimple correction:\n {ocr_text2}\nTime spent: {time.time() - start2}')
-    
-    start3 = time.time()
-    ocr_text3 = OCR3.ocr_image(example, lang='eng', plot=True)
-    print(f'\nContextual correction:\n {ocr_text3}\nTime spent: {time.time() - start3}')  
-    
-    start4 = time.time()
-    ocr_text4 = OCR4.ocr_image(example, lang='eng', plot=True)
-    print(f'\nBERT correction:\n {ocr_text4}\nTime spent: {time.time() - start4}')
-
-del OCR1, OCR2, OCR3, OCR4
-
-corrector = TypoCorrector_BERT(topk=150)
-text = corrector('In preparing for battle I hvae always found that plans are useless, but planing is indispensable')
-print(' '.join(text))
+# =============================================================================
+# corrector = TypoCorrector_BERT(topk=150)
+# text = corrector('In preparing for battle I hvae always found that plans are useless, but planing is indispensable')
+# print(text)
+# =============================================================================
