@@ -62,23 +62,16 @@ class OCRSingleImage():
             print('!! Did not find any words on the image !!')
             return None
         
-        ocr_text = ' '.join(ocr_data['text']).replace('|', 'I').split('.')
-        
-        output_text = []
-        for sentence in ocr_text:
-            if len(sentence) < 2:
-                continue
-            sentence = re.sub('[^a-zA-Z0-9 \n\.]', '', sentence)
-            sentence = self.corrector(sentence)
-            output_text.extend(sentence)
-        ocr_data['text'] = output_text
+        ocr_text = ' '.join(ocr_data['text'])
+        ocr_text = self.corrector(ocr_text)
+        ocr_data['text'] = ocr_text
         
         if plot:
             split_path = os.path.splitext(img_path)
             out_path = f"{split_path[0]}_{self.correction_method}{split_path[1]}"
             ocr_img = plot_bboxes(ocr_img, ocr_data, out_path, save=plot_save)
         
-        ocr_text = ' '.join(ocr_data['text']).lower().replace('  ', ' ')
+        #ocr_text = ' '.join(ocr_data['text']).lower().replace('  ', ' ')
         return ocr_text
     
     @staticmethod
@@ -94,6 +87,9 @@ class OCRSingleImage():
         for k in keys_to_convert:
             ocr_d[k] = np.array(ocr_data[k])[idxs_to_convert].tolist()
         return ocr_d
+    
+def preprocess_text(text: str):
+    pass
 
 ocr = 'tesseract'
 
