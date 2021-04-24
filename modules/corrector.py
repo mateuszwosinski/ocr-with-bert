@@ -1,6 +1,7 @@
 import re
 import os
-import string
+import warnings
+warnings.filterwarnings("ignore")
 from collections import Counter
 from typing import List, Tuple
 
@@ -78,7 +79,7 @@ class TypoCorrector_contextual():
     
 
 class TypoCorrector_BERT():
-    
+    SEPS = ['.', '?', '!']
     def __init__(self,
                  detection_model_path: str = 'data/typo_models/amazon_imdb_big_20k_4k',
                  topk: int = 50):
@@ -88,12 +89,30 @@ class TypoCorrector_BERT():
     def __call__(self,
                  ocr_text: str
                  ) -> List[str]:
-        ocr_text = ocr_text.replace('  ', ' ').translate(str.maketrans('','',string.punctuation)).strip()
-        typo_detections = self.detector(ocr_text.lower())
-        masked_text, ocr_words = self._convert_typo_detections(typo_detections[0], ocr_text.split(' '))
-        corrected_text = self.corrector(masked_text,
-                                        ocr_words)
-        return corrected_text.split(' ')
+        ocr_text = ocr_text.replace('  ', ' ').replace('|', 'I')
+        
+        org_seps = self.get_separators(ocr_text)
+        ocr_text = self.split(ocr_text)  # split detected text into sentences
+        
+        output_text = []
+        for ix, sentence in enumerate(ocr_text):
+            if len(sentence) < 2:
+                continue
+            sentence = re.sub('[^a-zA-Z0-9 \n\.]', '', sentence).strip()
+            typo_detections = self.detector(sentence.lower())
+            masked_text, ocr_words = self._convert_typo_detections(typo_detections[0], sentence.split(' '))
+            corrected_text = self.corrector(masked_text,
+                                            ocr_words)
+            try:
+                sep = org_seps[ix]
+            except IndexError:
+                sep = '.'
+            
+            corrected_text += sep
+            corrected_text = corrected_text.replace('  ', ' ')
+            output_text.extend(corrected_text.split(' '))
+        
+        return output_text
     
     @staticmethod
     def _convert_typo_detections(typo_detections: List[int],
@@ -109,3 +128,21 @@ class TypoCorrector_BERT():
                 masked_text.append(word)        
         masked_text = ' '.join(masked_text)
         return masked_text, ocr_words
+    
+    def split(self,
+              txt
+              ) -> List[str]:
+        default_sep = self.SEPS[0]
+
+        for sep in self.SEPS[1:]:
+            txt = txt.replace(sep, default_sep)
+        return [i.strip() for i in txt.split(default_sep)]
+    
+    def get_separators(self,
+                       txt
+                       ) -> List[str]:
+        org_seps = []
+        for sep in self.SEPS:
+            org_seps.extend([(pos, char) for pos, char in enumerate(txt) if char == sep])    
+        org_seps = [x[1] for x in sorted(org_seps)]
+        return org_seps
