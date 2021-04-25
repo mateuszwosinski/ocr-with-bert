@@ -17,7 +17,7 @@ class TypoEvaluator():
             self.corrector = TypoCorrector_simple()
         elif correction_method == 'contextual':
             self.corrector = TypoCorrector_contextual()
-        elif correction_method is 'none':
+        elif correction_method == 'none':
             self.corrector = lambda x: x.split(' ')
 
     def evaluate_single_text(self,
@@ -57,6 +57,12 @@ class TypoEvaluator():
                     'true_text': true_text}
         out_dict.update(self.evaluate_single_text(ocr_text, true_text))
         return out_dict
+    
+    def evaluate_text_from_string(self,
+                                  text: str
+                                  ):
+        corrected_text = ' '.join(self.corrector(text))
+        return corrected_text
 
     @staticmethod    
     def jaccard_similarity(query: str,

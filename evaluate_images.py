@@ -62,6 +62,12 @@ class ImageEvaluator():
         out_dict = self.evaluate_single_img(df_words, os.path.join(images_folder, img))
         return out_dict
     
+    def evaluate_img_from_path(self,
+                               img_path: str):
+
+        ocr_text = self.corrector.ocr_image(img_path, lang='eng', plot=True)
+        return ocr_text
+    
     @staticmethod    
     def jaccard_similarity(query: str,
                            document: str

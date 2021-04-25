@@ -90,37 +90,3 @@ class OCRSingleImage():
     
 def preprocess_text(text: str):
     pass
-
-ocr = 'tesseract'
-
-# =============================================================================
-# OCR1 = OCRSingleImage(ocr_method=ocr, correction_method=None)
-# OCR2 = OCRSingleImage(ocr_method=ocr, correction_method='simple')
-# OCR3 = OCRSingleImage(ocr_method=ocr, correction_method='contextual')
-# OCR4 = OCRSingleImage(ocr_method=ocr, correction_method='bert')
-# print('All models loaded')
-# 
-# examples = ['examples/1.png', 'examples/2.jpg', 'examples/3.jpg']
-# for example in examples:
-#     start1 = time.time()
-#     ocr_text1 = OCR1.ocr_image(example, lang='eng', plot=True)
-#     print(f'\nNo correction:\n {ocr_text1}\nTime spent: {time.time() - start1}')
-#     
-#     start2 = time.time()
-#     ocr_text2 = OCR2.ocr_image(example, lang='eng', plot=True)
-#     print(f'\nSimple correction:\n {ocr_text2}\nTime spent: {time.time() - start2}')
-#     
-#     start3 = time.time()
-#     ocr_text3 = OCR3.ocr_image(example, lang='eng', plot=True)
-#     print(f'\nContextual correction:\n {ocr_text3}\nTime spent: {time.time() - start3}')  
-#     
-#     start4 = time.time()
-#     ocr_text4 = OCR4.ocr_image(example, lang='eng', plot=True)
-#     print(f'\nBERT correction:\n {ocr_text4}\nTime spent: {time.time() - start4}')
-# =============================================================================
-
-# =============================================================================
-# corrector = TypoCorrector_BERT(topk=150)
-# text = corrector('In preparing for battle I hvae always found that plans are useless, but planing is indispensable')
-# print(text)
-# =============================================================================
