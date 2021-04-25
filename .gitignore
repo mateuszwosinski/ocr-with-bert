@@ -1,22 +1,22 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 */__pycache__/ 
- *.jpg
- *.png
- *.jpeg
+*.jpg
+*.png
+*.jpeg
  
- *.csv
- *.json
- *.xml
- *.pickle
- *.txt
- *.pt
- *.pth
- *.log
- *.wandb
- *.yaml
+*.csv
+*.json
+*.xml
+*.pickle
+*.txt
+*.pt
+*.pth
+*.log
+*.wandb
+*.yaml
  
- *.ipynb
+*.ipynb
 
  data/*
 
