@@ -11,6 +11,7 @@ class TypoEvaluator():
     
     def __init__(self,
                  correction_method: str = 'bert'):
+        assert correction_method in ['bert', 'simple', 'contextual', 'none'], 'Wrong correction method'
         if correction_method == 'bert':
             self.corrector = TypoCorrector_BERT(topk=2000)
         elif correction_method == 'simple':
@@ -25,10 +26,16 @@ class TypoEvaluator():
                              true_text: str,
                              ) -> Dict[str, float]: 
         corrected_text = ' '.join(self.corrector(ocr_text))
-        jaccard_sim = self.jaccard_similarity(corrected_text.translate(str.maketrans("","", string.punctuation)),
+        
+        jaccard_ocr = self.jaccard_similarity(ocr_text.translate(str.maketrans("","", string.punctuation)),
                                               true_text.translate(str.maketrans("","", string.punctuation)))
+        
+        jaccard_corrected = self.jaccard_similarity(corrected_text.translate(str.maketrans("","", string.punctuation)),
+                                                    true_text.translate(str.maketrans("","", string.punctuation)))
+        
         return {'corrected_text': corrected_text,
-                'jaccard': jaccard_sim}
+                'corrected_jaccard': jaccard_corrected,
+                'ocr_jaccard': jaccard_ocr}
     
     def evaluate_text_file(self,
                            eval_path: str,

@@ -30,7 +30,10 @@ def plot_bboxes(ocr_img: np.array,
     
     if save:
         cv2.imwrite(out_path, ocr_img)
+    
+    plt.figure(figsize=(20,20))
     plt.imshow(ocr_img)
+    plt.axis('off')
     return ocr_img
 
 def visualize_ocr(img_path: str, 

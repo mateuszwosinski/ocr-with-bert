@@ -6,7 +6,8 @@ from typo_detection_dataset import TypoDataset
 
 words = []
 labels = []
-sources = ['amazon_medium', 'imdb_medium', 'big_0']
+#sources = ['amazon_medium', 'imdb_medium', 'big_0']
+sources = ['big_0']
 for source in sources:
     words.extend(pickle.load(open(f"../../data/files_pickle/words_{source}.pickle", "rb")))
     labels.extend(pickle.load(open(f"../../data/files_pickle/labels_{source}.pickle", "rb")))
@@ -25,10 +26,13 @@ for word, label in zip(random_words, random_labels):
 # +
 labels_lens = [len(l) for l in labels]
 
+plt.figure(figsize=(10,6))
 plt.hist(labels_lens, bins=25)
-plt.xlabel('Number of words in sentence')
-plt.ylabel('Number of sentences')
+plt.xlabel('Number of words in text')
+plt.ylabel('Number of texts')
+plt.savefig('Number_of_sentences.jpg')
 plt.show()
+
 
 # +
 labels_one = sum([sum(l) for l in labels])

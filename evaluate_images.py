@@ -1,10 +1,12 @@
 import os
 import string
 import random
+import matplotlib.pyplot as plt
 from typing import Dict, Any
 
 import pandas as pd
 import numpy as np
+from PIL import Image
 from pipe import OCRSingleImage
 
 
@@ -17,7 +19,8 @@ class ImageEvaluator():
 
     def evaluate_single_img(self,
                             df_words: pd.DataFrame,
-                            img_path: str
+                            img_path: str,
+                            plot: bool = False,
                             ) -> Dict[str, Any]:
         img = img_path.split('/')[-1]
         try:
@@ -26,7 +29,7 @@ class ImageEvaluator():
             print('Did not found ground true text for indicated image')
             return None, None
         
-        corrected_text = ' '.join(self.corrector.ocr_image(img_path, lang='eng', plot=False, plot_save=False))
+        corrected_text = ' '.join(self.corrector.ocr_image(img_path, plot=plot, plot_save=False))
         jaccard = self.jaccard_similarity(corrected_text.translate(str.maketrans("","", string.punctuation)), 
                                           true_text.translate(str.maketrans("","", string.punctuation)))
         
@@ -55,17 +58,19 @@ class ImageEvaluator():
             
     def evaluate_random_img(self,
                             words_file: str,
-                            images_folder: str):
+                            images_folder: str,
+                            plot: bool = False):
         
         df_words = pd.read_csv(words_file)  
         img = random.choice(df_words['file'])
-        out_dict = self.evaluate_single_img(df_words, os.path.join(images_folder, img))
+        out_dict = self.evaluate_single_img(df_words, os.path.join(images_folder, img), plot=plot)
         return out_dict
     
     def evaluate_img_from_path(self,
-                               img_path: str):
+                               img_path: str,
+                               plot: bool = False):
 
-        ocr_text = self.corrector.ocr_image(img_path, lang='eng', plot=True)
+        ocr_text = self.corrector.ocr_image(img_path, plot=plot)
         return ocr_text
     
     @staticmethod    
@@ -76,3 +81,11 @@ class ImageEvaluator():
         document = set(document.split(' '))
         intersection = query.intersection(document)
         return round(float(len(intersection)) / (len(query) + len(document) - len(intersection)), 4)
+    
+    @staticmethod
+    def show_image(img_path):
+        img = Image.open(img_path)
+        plt.figure(figsize=(20,20))
+        plt.imshow(img)
+        plt.axis('off')
+        plt.show()

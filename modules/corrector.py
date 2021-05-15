@@ -105,10 +105,10 @@ class TypoCorrector_BERT():
                                             ocr_words)
             try:
                 sep = org_seps[ix]
+                corrected_text += sep
             except IndexError:
-                sep = '.'
-            
-            corrected_text += sep
+                pass
+
             corrected_text = corrected_text.replace('  ', ' ')
             output_text.extend(corrected_text.split(' '))
         
