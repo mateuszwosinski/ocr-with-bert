@@ -12,7 +12,12 @@ import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 from modules.visualize import plot_bboxes
-from modules.corrector import TypoCorrector_simple, TypoCorrector_contextual, TypoCorrector_BERT
+from modules.corrector import (
+    TypoCorrector_simple,
+    TypoCorrector_contextual,
+    TypoCorrector_BERT,
+    TypoCorrector_langtool
+)
 from HTR_model.infer import HTR_model
 
 
@@ -22,9 +27,10 @@ class OCRSingleImage():
     def __init__(self,
                  lang: str = 'eng',
                  ocr_method: str = 'tesseract',
-                 correction_method: str = None):
+                 correction_method: str = None,
+                 pos_tag: str = None):
         assert ocr_method in ['tesseract', 'easy', 'htr_line', 'htr_word'], 'Selected OCR method not implemented!'
-        assert correction_method in [None, 'simple', 'contextual', 'bert'], 'Selected Typo correction method not implemented!'
+        assert correction_method in [None, 'simple', 'contextual', 'bert', 'langtool'], 'Selected Typo correction method not implemented!'
         
         self.lang = lang
         self.ocr_method = ocr_method
@@ -43,7 +49,9 @@ class OCRSingleImage():
         elif correction_method == 'contextual':
             self.corrector = TypoCorrector_contextual()
         elif correction_method == 'bert':
-            self.corrector = TypoCorrector_BERT(topk=200)
+            self.corrector = TypoCorrector_BERT(topk=2000, pos_tag=pos_tag)
+        elif correction_method == 'langtool':
+            self.corrector = TypoCorrector_langtool()
         elif correction_method is None:
             self.corrector = lambda x: x.split(' ')
         else:

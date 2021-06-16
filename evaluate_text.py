@@ -1,23 +1,34 @@
 import string
+import time
 from typing import Dict
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
-from modules.corrector import TypoCorrector_simple, TypoCorrector_contextual, TypoCorrector_BERT
+from modules.corrector import (
+    TypoCorrector_simple,
+    TypoCorrector_contextual,
+    TypoCorrector_langtool,
+    TypoCorrector_BERT
+)
 
 
 class TypoEvaluator():
     
     def __init__(self,
-                 correction_method: str = 'bert'):
-        assert correction_method in ['bert', 'simple', 'contextual', 'none'], 'Wrong correction method'
+                 correction_method: str = 'bert',
+                 pos_tag: str = None):
+        assert correction_method in ['bert', 'simple', 'contextual', 'langtool', 'none'], 'Wrong correction method'
+        
         if correction_method == 'bert':
-            self.corrector = TypoCorrector_BERT(topk=2000)
+            self.corrector = TypoCorrector_BERT(topk=2000, pos_tag=pos_tag)
         elif correction_method == 'simple':
             self.corrector = TypoCorrector_simple()
         elif correction_method == 'contextual':
             self.corrector = TypoCorrector_contextual()
+        elif correction_method == 'langtool':
+            self.corrector = TypoCorrector_langtool()
         elif correction_method == 'none':
             self.corrector = lambda x: x.split(' ')
 
@@ -39,17 +50,22 @@ class TypoEvaluator():
     
     def evaluate_text_file(self,
                            eval_path: str,
+                           n_imgs: int = -1
                            ) -> Dict[str, float]:
 
-        df_eval = pd.read_csv(eval_path)
-        df_eval = df_eval.iloc[:100]
+        df_eval = pd.read_csv(eval_path).iloc[:n_imgs]
         similarities = {'jaccard': []}
-        for _, row in df_eval.iterrows():
+        
+        start_time = time.time()
+        for _, row in tqdm(df_eval.iterrows(), total=df_eval.shape[0]):
             text_similiarities = self.evaluate_single_text(row['OCR'],
                                                            row['True'])
-            similarities['jaccard'].append(text_similiarities['jaccard'])
+            similarities['jaccard'].append(text_similiarities['corrected_jaccard'])
+        time_spent = time.time() - start_time
+        print(f'Time spent: {round(time_spent, 4)}')
+        print(f'Average time per iter: {round(time_spent / n_imgs, 4)}')
         
-        out_similarities = {k: np.mean(v) for k, v in similarities.items()}
+        out_similarities = {k: round(np.mean(v), 4) for k, v in similarities.items()}
         return out_similarities
     
     def evaluate_random_text(self,

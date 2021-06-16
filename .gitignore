@@ -13,6 +13,7 @@ wandb/
 *.json
 *.xml
 *.pickle
+*.pkl
 *.txt
 *.pt
 *.pth

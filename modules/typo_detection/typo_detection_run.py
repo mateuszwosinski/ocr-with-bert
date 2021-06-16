@@ -29,13 +29,10 @@ dataloaders = {'train': dl_train,
 tokenizer = BertTokenizer.from_pretrained(data_dir)
 model = TypoDetectorBERT()
 
-# =============================================================================
-# train_detector(model,
-#                tokenizer,
-#                dataloaders,
-#                output_dir,
-#                epochs,
-#                lr)
-# =============================================================================
-
-
+train_detector(model,
+               tokenizer,
+               dataloaders,
+               output_dir,
+               epochs,
+               lr,
+               wandb_log=False)

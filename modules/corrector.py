@@ -7,6 +7,7 @@ from typing import List, Tuple
 
 import spacy
 import contextualSpellCheck as SpellCheck
+import language_tool_python
 
 from modules.typo_detection.typo_detection_infer import TypoDetector
 from modules.typo_correction.typo_correction_infer import TypoCorrector
@@ -77,15 +78,27 @@ class TypoCorrector_contextual():
         corrected_sentence = doc._.outcome_spellCheck
         return corrected_sentence.split(' ') 
     
+    
+class TypoCorrector_langtool():
+    
+    def __init__(self):
+        self.corrector = language_tool_python.LanguageTool("en-US")
+    
+    def __call__(self,
+                 sentence: str
+                 ) -> List[str]:
+        return self.corrector.correct(sentence).split(' ')
+
 
 class TypoCorrector_BERT():
     SEPS = ['.', '?', '!']
     def __init__(self,
                  detection_model_path: str = 'data/typo_models/amazon_imdb_big_20k_4k',
+                 pos_tag: bool = False,
                  topk: int = 50):
         self.detector = TypoDetector(detection_model_path)
-        self.corrector = TypoCorrector(topk=topk)
-    
+        self.corrector = TypoCorrector(topk=topk, pos_tag=pos_tag)
+
     def __call__(self,
                  ocr_text: str
                  ) -> List[str]:

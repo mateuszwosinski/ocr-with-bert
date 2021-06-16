@@ -6,8 +6,7 @@ from typo_detection_dataset import TypoDataset
 
 words = []
 labels = []
-#sources = ['amazon_medium', 'imdb_medium', 'big_0']
-sources = ['big_0']
+sources = ['amazon_medium', 'imdb_medium']
 for source in sources:
     words.extend(pickle.load(open(f"../../data/files_pickle/words_{source}.pickle", "rb")))
     labels.extend(pickle.load(open(f"../../data/files_pickle/labels_{source}.pickle", "rb")))
@@ -18,16 +17,20 @@ words, labels = zip(*data)
 print(f'Number of sentences in dataset: {len(words)}')
 
 random_idx = random.randint(0, len(words))
+random_idx = 22
 random_words = words[random_idx]
 random_labels = labels[random_idx]
 for word, label in zip(random_words, random_labels):
     print("%-30s %-1s" % (word, label))
 
+plt.style.available
+
 # +
 labels_lens = [len(l) for l in labels]
 
+plt.style.use('fast')
 plt.figure(figsize=(10,6))
-plt.hist(labels_lens, bins=25)
+plt.hist(labels_lens, bins=25, color='orange')
 plt.xlabel('Number of words in text')
 plt.ylabel('Number of texts')
 plt.savefig('Number_of_sentences.jpg')
@@ -51,6 +54,10 @@ for word, idx, label in zip(tokenized_words, tokenized_ids, tokenized_labels):
     print("%-30s %-30s %-1s" % (word, idx, label))
 # -
 
+zip_list = list(zip(words, labels))
+random.shuffle(zip_list)
+words, labels = zip(*zip_list)
+
 train_part = 20000
 val_part = 4000
 modes = ['train', 'val']
@@ -62,7 +69,7 @@ for mode, word, label in zip(modes, words_m, labels_m):
     inp, tg, msk = ds.prepare_dataset(word, label, out_path='../../data/typo_ds/amazon_imdb_big_20k_4k')
 
 print("%-10s %-10s %-10s" % ("WORD_ID", "WORD_LABEL", "WORD_MASK"))
-for inp_t, tg_t, msk_t in zip(inp[0], tg[0], msk[0]):
+for inp_t, tg_t, msk_t in zip(inp[22], tg[22], msk[22]):
     print("%-10s %-10s %-10s" % (inp_t.item(), tg_t.item(), msk_t.item()))
 
 

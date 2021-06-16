@@ -6,6 +6,7 @@ import torch
 from transformers import BertTokenizer
 from modules.typo_detection.typo_detection_model import  TypoDetectorBERT
 
+
 class TypoDetector():
     
     def __init__(self,

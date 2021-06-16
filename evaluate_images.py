@@ -1,6 +1,7 @@
 import os
 import string
 import random
+import time
 import matplotlib.pyplot as plt
 from typing import Dict, Any
 
@@ -8,30 +9,29 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 from pipe import OCRSingleImage
+from tqdm import tqdm
 
 
 class ImageEvaluator():
     
     def __init__(self,
                  ocr_method: str,
-                 correction_method: str):
-        self.corrector = OCRSingleImage(ocr_method=ocr_method, correction_method=correction_method)
+                 correction_method: str,
+                 pos_tag: str = None):
+        self.corrector = OCRSingleImage(ocr_method=ocr_method,
+                                        correction_method=correction_method,
+                                        pos_tag=pos_tag)
 
     def evaluate_single_img(self,
-                            df_words: pd.DataFrame,
+                            true_text: str,
                             img_path: str,
                             plot: bool = False,
                             ) -> Dict[str, Any]:
-        img = img_path.split('/')[-1]
-        try:
-            true_text = df_words[df_words['file'] == img]['text'].tolist()[0]  
-        except IndexError:
-            print('Did not found ground true text for indicated image')
-            return None, None
-        
         corrected_text = ' '.join(self.corrector.ocr_image(img_path, plot=plot, plot_save=False))
+
         jaccard = self.jaccard_similarity(corrected_text.translate(str.maketrans("","", string.punctuation)), 
                                           true_text.translate(str.maketrans("","", string.punctuation)))
+
         
         out_dict = {}
         out_dict['corrected_text'] = corrected_text
@@ -43,17 +43,22 @@ class ImageEvaluator():
                             words_file: str,
                             images_folder: str,
                             num_imgs: int = 1):
-        df_words = pd.read_csv(words_file)
-        images = os.listdir(images_folder)
+        df = pd.read_csv(words_file).iloc[:num_imgs]
         
         similarities = {'jaccard': []}
-        for ix, img in enumerate(images):
-            out_dict = self.evaluate_single_img(df_words, os.path.join(images_folder, img))
+        start_time = time.time()
+        for (_, row) in tqdm(df.iterrows()):
+            true_text = row['text']
+            if type(true_text) != str:
+                continue
+            out_dict = self.evaluate_single_img(true_text, os.path.join(images_folder, row['name']))
             similarities['jaccard'].append(out_dict['jaccard'])
-            if ix == num_imgs:
-                break
         
         out_similarities = {k: np.mean(v) for k, v in similarities.items()}
+        time_taken = time.time() - start_time
+        print(f'\nTime taken: {round(time_taken, 4)}')
+        print(f'Average time: {round(time_taken / num_imgs, 4)}')
+        print(out_similarities)
         return out_similarities
             
     def evaluate_random_img(self,

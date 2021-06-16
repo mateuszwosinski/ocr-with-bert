@@ -98,7 +98,7 @@ def sklearn_clf(X_train, X_val, y_train, y_val, model='dt'):
 X_train, X_val, y_train, y_val = get_dataset('../../data/pos_tagger/amazon_corpus_5000.json',
                                              vocab_path=VOCAB_PATH,
                                              train_split=0.8,
-                                             ready=False)
+                                             ready=True)
 
 X_train.drop(['is_first', 'is_last'], axis=1, inplace=True)
 X_val.drop(['is_first', 'is_last'], axis=1, inplace=True)
@@ -107,3 +107,5 @@ X_val.drop(['is_first', 'is_last'], axis=1, inplace=True)
 for model in ['dt', 'rf', 'mlp']:
     clf = sklearn_clf(X_train, X_val, y_train, y_val, model=model)
 #clf_nn = keras_clf(X_train, X_val, y_train, y_val, 1)
+
+

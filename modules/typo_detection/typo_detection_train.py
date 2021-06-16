@@ -1,4 +1,5 @@
 import os
+from datetime import datetime as dtime
 
 import numpy as np
 import wandb
@@ -56,12 +57,17 @@ def train_detector(model,
                    dataloaders,
                    output_dir: str, 
                    epochs: int,
-                   lr: float
+                   lr: float,
+                   wandb_log: bool = False
                    ):
-    wandb.init('ocr-with-bert')
-    config = wandb.config
-    config.learning_rate = lr
-    config.epochs = epochs
+    time_now_str  = dtime.now().strftime("%Y-%m-%d-%H-%M")
+    run_name = f'ocr-with-bert-{time_now_str}'
+    
+    if wandb_log:
+        wandb.init(run_name)
+        config = wandb.config
+        config.learning_rate = lr
+        config.epochs = epochs
     
     os.makedirs(output_dir, exist_ok=True)
     
@@ -125,7 +131,7 @@ def train_detector(model,
                     optimizer.step()
                     scheduler.step()
                 
-                if (step % 1000) == 0:
+                if wandb_log and ((step % 1000) == 0):
                     wandb.log({f"loss_{mode}" : loss})
   
             loss_avg = loss_epoch / len(dataloaders[mode])
@@ -140,7 +146,8 @@ def train_detector(model,
             print(f"{mode} accuracy: {acc}")
             acc_arr[mode].append(acc)
             
-            wandb.log({f"accuracy_{mode}": acc})
+            if wandb_log:
+                wandb.log({f"accuracy_{mode}": acc})
             
             if mode == 'val':
                 if loss_avg < best_loss:
