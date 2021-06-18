@@ -88,9 +88,11 @@ class ImageEvaluator():
         return round(float(len(intersection)) / (len(query) + len(document) - len(intersection)), 4)
     
     @staticmethod
-    def show_image(img_path):
+    def show_image(img_path, text):
         img = Image.open(img_path)
+        plt.rcParams.update({'font.size': 16})
         plt.figure(figsize=(20,20))
         plt.imshow(img)
         plt.axis('off')
+        plt.title(text)
         plt.show()

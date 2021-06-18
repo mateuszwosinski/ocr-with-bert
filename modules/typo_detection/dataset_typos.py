@@ -103,10 +103,13 @@ class DatasetExtractor():
 
     
 train_files = sorted(glob.glob(os.path.join("../../data/ICDAR2019-POCR-ground-truth/training_18M_without_Finnish/EN", "*", "*.txt")))
+test_files = sorted(glob.glob(os.path.join("../../data/ICDAR2019-POCR-ground-truth/evaluation_4M_without_Finnish/EN", "*", "*.txt")))
+
+files = train_files + test_files
 
 Dataset = DatasetExtractor()
 
-ocr_words, gs_words, labels = Dataset.extract_dataset(train_files)
+ocr_words, gs_words, labels = Dataset.extract_dataset(files)
 ocr_words_corr = []
 for sentence in ocr_words:
     ocr_words_corr.append([word.replace('@', '') for word in sentence])
@@ -136,6 +139,10 @@ good_sent_ratio = good_sent / total_sent
 print("good sentences: %s\ntotal sentences: %s\ngood sentences ratio: %s" % (good_sent, total_sent, good_sent_ratio))
 
 good_sentences_stat = sent_stat[sent_stat["sent_edit_distance"] <= MAXIMUM_AVERAGE_EDIT_DISTANCE_RATE]
+good_sentences_stat['ocr_sentence'] = good_sentences_stat['ocr_sentence'].apply(lambda x: ' '.join(x)).reset_index(drop=True)
+good_sentences_stat['gs_sentence'] = good_sentences_stat['gs_sentence'].apply(lambda x: ' '.join(x)).reset_index(drop=True)
+
+
 
 words = np.array(ocr_words_corr, dtype=object)[good_sentences_stat.index.tolist()].tolist()
 labels = np.array(labels, dtype=object)[good_sentences_stat.index.tolist()].tolist()

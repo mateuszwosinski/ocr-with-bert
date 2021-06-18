@@ -63,7 +63,7 @@ class TypoEvaluator():
             similarities['jaccard'].append(text_similiarities['corrected_jaccard'])
         time_spent = time.time() - start_time
         print(f'Time spent: {round(time_spent, 4)}')
-        print(f'Average time per iter: {round(time_spent / n_imgs, 4)}')
+        print(f'Average time per iter: {round(time_spent / len(df_eval), 4)}')
         
         out_similarities = {k: round(np.mean(v), 4) for k, v in similarities.items()}
         return out_similarities

@@ -4,7 +4,7 @@ from evaluate_text import TypoEvaluator
 import warnings
 warnings.filterwarnings("ignore")
 
-eval_path = 'data/evaluation/amazon_imdb.csv'
+eval_path = 'data/evaluation/test_wiki.csv'
 
 def eval_model(corr_method, pos_tag, n_imgs=-1):
     corr_name = f'{corr_method}_{pos_tag}'
@@ -15,10 +15,11 @@ def eval_model(corr_method, pos_tag, n_imgs=-1):
 
 # test different correction methods on a csv file
 correctors = ['langtool', 'bert', 'simple', 'contextual', 'none']
-pos_tags = ['stanford', 'flair', None]
+correctors = ['bert']
+pos_tags = ['stanford', 'flair']
 random_out = {}
 all_out = {}
-n_imgs = 20
+n_imgs = -1
 
 for corr_method in correctors:
     if corr_method == 'bert':
